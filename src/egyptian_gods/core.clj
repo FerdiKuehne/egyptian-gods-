@@ -14,13 +14,26 @@
 
 (def listofGods (text/extract pdf))
 
-(str/split listofGods #"\n")
+listofGods
+
+
+(map #(vector %) (str/split listofGods #"\n"))
+
+(def mapifygods
+  (map
+   (fn [x]
+     (let [y (str/split x #"info: ")]
+       {:name (str/trim (str/replace (get y 0) "name:" ""))
+        :info (get y 1)}))
+   (str/split listofGods #"\n")))
+
+
 
 (defroutes app-routes
   (GET "/" [] (resp/file-response "index.html" {:root "resources/public"}))
   (GET "/list-of-gods" [] (resp/file-response "list.html" {:root "resources/public"}))
   (GET "/app-version" req (str "Hello World v" (:app-version req)))
-  (GET "/pdf" [] listofGods)
+  (GET "/pdf" [] mapifygods)
     (route/resources "/"))
 
 (defn wrap-version [handler]

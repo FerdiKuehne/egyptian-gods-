@@ -1,7 +1,8 @@
 # egyptian-gods
 
-*creating server with http-kit
-*routing with compojure
+* creating server with http-kit
+* routing with compojure
+* integrate pdfboxxing
 
 ## Usage
 
