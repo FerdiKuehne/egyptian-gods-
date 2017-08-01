@@ -1,15 +1,20 @@
 body {
- background-color: #333300;
+ background-color: #85929e;
  color: #FFFFFF;
 }
 h1 {
- color: #FFFF33;
+ color: #fae5d3;
  text-align: center;
- font: italic 200% fantasy;
+ font: italic balt 200%;
+}
+h2 {
+ color:  #e8daef;
+ text-align: left;
+ font: italic balt 150%;
 }
 p {
- background-color: #FFFF33;
+ background-color: #58d68d;
  color: #333300;
  text-align: right;
- border: 3px groove #FFFF33;
+ border: 3px groove #d7bde2;
 }
