@@ -5,8 +5,7 @@
 
 (defroutes app-routes
   (GET "/" [] (resp/file-response "index.html" {:root "resources/public"}))
-  (GET "/list-of-gods" [] (resp/file-response "index.html" {:root "resources/public"}))
-  (route/resources "/"))
+  (GET "/list-of-gods" [] (resp/file-response "index.html" {:root "resources/public"})))
 
 (defn -main []
   (run-server app-routes {:port 3000}))
