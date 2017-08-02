@@ -1,9 +1,10 @@
 # egyptian-gods
 
-* creating server with http-kit
-* routing with compojure
+* routing with compojure api
 * integrate pdfboxxing
+* lein ring server
+* integrating swagger UI
 
 ## Usage
 
-start server with  "lein run -m egyptian-gods.core"
+start server with  "lein ring server"
