@@ -30,6 +30,14 @@
    :offspring s/Str
    :greek-equivalent s/Str})
 
+(defn fiboo
+  ([]
+   (let [fib [0 1 1]]
+     {:info "Fibonacci number" :fib-r fib :result (last fib)}))
+  ([n]
+   (let [fib [0 1]]
+     {:info "fibo after " n "steps " :fib-r fib :result (last fib)})))
+
 (defn mapify-gods
   [pdf]
   (map
@@ -53,7 +61,7 @@
                       :tags [{:name "api"}]}}}
     (undocumented
      (cr/resources "/")
-     (cr/not-found (response-template :failure :not_found))
+     ;;(cr/not-found (response-template :failure :not_found))
      (GET "/" [] ;;entry to start page
        (io/resource "public/index.html")))
     (context "/api" []
@@ -94,7 +102,7 @@
       (wrap-cors :access-control-allow-origin [#"http://localhost:3000"]
                   :access-control-allow-methods [:get :put :post :delete])))
 
-(run-server (app) {:port (-> config :port)})
+(run-server (app) {:port (:port @config)})
 
 
 #_(defnroutes app-routes
