@@ -1,17 +1,26 @@
-(ns egyptian-gods.core
+ (ns egyptian-gods.core
   (:require [compojure.api.sweet :refer :all]
-            [ring.util.http-response :refer :all]
+            [compojure.route :as cr]
+            [org.httpkit.server :refer [run-server]]
             [pdfboxing.text :as text]
             [pdfboxing.info :as info]
-            [ring.util.response :as resp]
             [clojure.string :as str]
+            [clojure.java.io :as io]
             [schema.core :as s]
+            [ring.util.response :as resp]
+            [ring.util.http-response :refer :all]
             [ring.swagger.schema :as rs]
+            [ring.middleware.cors :refer [wrap-cors]]
+            [ring.middleware.multipart-params :refer [wrap-multipart-params]]
+            [ring.middleware.json :refer [wrap-json-response]]
             [clj-time.local :as l]))
 
 (def config (atom {:port 3000
                    :pdf "egyptgods.pdf"
                    :list-of-gods (text/extract "egyptgods.pdf")}))
+
+(defn response-template [status data]
+  (ok {:status status :data data}))
 
 (s/defschema god
   {:name s/Str
@@ -31,34 +40,61 @@
    (str/split pdf #"\n")))
 
 (defn timelord []
+  "return local time"
   (l/format-local-time (l/local-now) :basic-date-time))
 
-(def app
-  (api
-    {:swagger
-     {:ui   "/"
-      :spec "/swagger.json"
-      :data {:info {:title "Egyptian Gods"}
-             :tags [{:name "api"}]}}}
+(defn create-routes []
+  "function that created endpoints and resources"
+  (routes
+   (api
+    {:swagger {:ui   "/swagger"
+               :spec "/swagger.json"
+               :data {:info {:title "Egyptian Gods"}
+                      :tags [{:name "api"}]}}}
+    (undocumented
+     (cr/resources "/")
+     (cr/not-found (response-template :failure :not_found))
+     (GET "/" [] ;;entry to start page
+       (io/resource "public/index.html")))
     (context "/api" []
       :tags ["api"]
-    (GET "/plus" []
+      (GET "/plus" []
         :return {:result Long}
         :query-params [x :- Long, y :- Long]
         :summary "adds two numbers together"
         (ok {:result (+ x y)}))
-    (GET "/pdf-list" []
-      (ok (mapify-gods (-> @config :list-of-gods))))
-    (GET "/server-name" []
-      (ok (str "<h1>I am a Server </h1>")))
-    (GET "/time-lord" []
-      :return String
-      :summary "return local time"
-      (ok (timelord)))
-    (POST "/add-god" []
-      :return String
-      :body [gods god]
-      (ok "I am a God")))))
+      (GET "/pdf-list" []
+        (ok (mapify-gods (-> @config :list-of-gods))))
+      (GET "/server-name" []
+        (ok (str "<h1>I am a Server </h1>")))
+      (GET "/time-lord" []
+        :return String
+        :summary "return local time"
+        (ok (timelord)))
+      (POST "/add-god" []
+        :return String
+        :body [gods god]
+        (ok "I am a God"))))))
+
+
+;;Middleware is a function that receives the request and response objects of an HTTP request/response cycle.
+;;in other frameworks “middleware” is called “filters”
+(defn wrap-log-request
+  ""
+  [handler]
+  (fn [req]
+    (let [resp (handler req)]
+      resp)))
+
+(defn app [] 
+  (-> (create-routes)
+      wrap-log-request
+      wrap-json-response
+      wrap-multipart-params
+      (wrap-cors :access-control-allow-origin [#"http://localhost:3000"]
+                  :access-control-allow-methods [:get :put :post :delete])))
+
+(run-server (app) {:port (-> config :port)})
 
 
 #_(defnroutes app-routes
