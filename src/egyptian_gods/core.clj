@@ -22,6 +22,23 @@
 (defn response-template [status data]
   (ok {:status status :data data}))
 
+(defn fibo
+  ([]
+   (fibo 10 [1 0]))
+  ([t]
+   (fibo t [1 0]))
+  ([t fibr]
+   (let [n (- (count fibr) 1)]
+     (if (= t n)
+       {:steps t :fibo-array fibr :fibo-result (first fibr)}
+       (recur t (apply vector (+ (first fibr) (second fibr)) fibr))))))
+
+(defn golden-spiral
+  ([]
+   (golden-spiral 10))
+  ([t]
+   (map (fn[x] {:x x :y x}) (-> (fibo t) :fibo-array))))
+
 (s/defschema god
   {:name s/Str
    :symbol s/Str
@@ -29,14 +46,6 @@
    :gender (s/enum :male :female)
    :offspring s/Str
    :greek-equivalent s/Str})
-
-(defn fiboo
-  ([]
-   (let [fib [0 1 1]]
-     {:info "Fibonacci number" :fib-r fib :result (last fib)}))
-  ([n]
-   (let [fib [0 1]]
-     {:info "fibo after " n "steps " :fib-r fib :result (last fib)})))
 
 (defn mapify-gods
   [pdf]
@@ -78,23 +87,22 @@
       (GET "/time-lord" []
         :return String
         :summary "return local time"
+        (io/resource "public/index.html")
         (ok (timelord)))
       (POST "/add-god" []
         :return String
         :body [gods god]
         (ok "I am a God"))))))
 
-
 ;;Middleware is a function that receives the request and response objects of an HTTP request/response cycle.
 ;;in other frameworks “middleware” is called “filters”
 (defn wrap-log-request
-  ""
   [handler]
   (fn [req]
     (let [resp (handler req)]
       resp)))
 
-(defn app [] 
+(defn app []
   (-> (create-routes)
       wrap-log-request
       wrap-json-response
@@ -102,20 +110,6 @@
       (wrap-cors :access-control-allow-origin [#"http://localhost:3000"]
                   :access-control-allow-methods [:get :put :post :delete])))
 
-(run-server (app) {:port (:port @config)})
-
-
-#_(defnroutes app-routes
-   (GET "/" req
-     (resp/file-response "index.html" {:root "resources/public"}))
-   (GET "/list-of-gods" req
-     (resp/file-response "list.html" {:root "resources/public"}))
-   (GET "/app-version" req
-     (str "Hello World v" (:app-version req)))
-   (GET "/pdf" req
-     (mapify-gods (-> @config :list-of-gods)))
-   (route/resources "/")
-   (route/not-found
-    (resp/response {:message "Page not found 404"})))
-
-;;handler function to handle all incoming requests 
+(defn -main []
+  (run-server (app) {:port (:port @config)})
+  (println "Server running at port:" (:port @config)))
