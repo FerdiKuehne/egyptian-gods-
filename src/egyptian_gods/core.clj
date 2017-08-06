@@ -47,6 +47,9 @@
    :offspring s/Str
    :greek-equivalent s/Str})
 
+(s/defschema fibo-numbers
+  {:steps Long, :fibo-array [Long], :fibo-result Long})
+
 (defn mapify-gods
   [pdf]
   (map
@@ -87,12 +90,16 @@
       (GET "/time-lord" []
         :return String
         :summary "return local time"
-        (io/resource "public/index.html")
         (ok (timelord)))
+      (GET "/fibo" []
+        :return fibo-numbers
+        :query-params [steps :- Long]
+        :summary "return fibonacci numbers"
+        (ok (fibo steps)))
       (POST "/add-god" []
-        :return String
+        :return god
         :body [gods god]
-        (ok "I am a God"))))))
+        (ok gods))))))
 
 ;;Middleware is a function that receives the request and response objects of an HTTP request/response cycle.
 ;;in other frameworks “middleware” is called “filters”
@@ -108,7 +115,7 @@
       wrap-json-response
       wrap-multipart-params
       (wrap-cors :access-control-allow-origin [#"http://localhost:3000"]
-                  :access-control-allow-methods [:get :put :post :delete])))
+                 :access-control-allow-methods [:get :put :post :delete])))
 
 (defn -main []
   (run-server (app) {:port (:port @config)})
